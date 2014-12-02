@@ -1,16 +1,17 @@
 #encoding:utf-8
 __author__ = 'wangjiewen'
 
-import numpy
 import operator
 import json
 from math import log
+import treePlotter
 
 class ID3(object):
     def __init__(self):
         self.matrix = []
         self.labels = ['Outlook', 'Temperature', 'Humidity', 'Wind']
-        # self.loadFile('trainset.txt')
+        self.tree = {}
+        self.loadFile('trainset.txt')
 
     def loadFile(self, filename):
         """
@@ -111,16 +112,11 @@ class ID3(object):
         return maxFeatCol
 
 
-    def majorityCnt(self, classList):
-        classCount = {}
-        for key in classList:
-            if key not in classCount.keys():
-                classCount[key] = 0
-            classCount[key] += 1
-        sortedClass = sorted(classCount, key=operator.getitem(1), reverse=True)
-        return sortedClass[0][0]
-
     def createTree(self):
+        """
+        创建决策树
+        :return:
+        """
         initCol = self.selectMaxGainCol(self.matrix)
         root = {self.labels[initCol]: {}}
 
@@ -172,8 +168,45 @@ class ID3(object):
                     nodeStack.append(pCur[key])
 
         print json.dumps(root, indent=4)
-
+        self.tree = root
         return root
+
+
+    def classify(self, featLabels=[], testVec=[]):
+        """
+        分类函数预测
+        :param testVec:
+        :return:
+        """
+        rootKey = self.tree.keys()[0]
+        rootNode = self.tree[rootKey]
+
+        keyStack = []
+        keyStack.append(rootKey)
+        nodeStack = []
+        nodeStack.append(rootNode)
+
+        while len(nodeStack) > 0:
+            curKey = keyStack.pop()
+            curNode = nodeStack.pop()
+            featIndex = featLabels.index(curKey)
+
+            #keyOfAttr是属性的key, 例如sunny,rainy
+            for keyOfAttr in curNode.keys():
+                if(testVec[featIndex] == keyOfAttr):
+
+                    #如果节点类型为字典，则不是叶节点，继续加入栈中
+                    if type(curNode[keyOfAttr]).__name__ == 'dict':
+                        #nextKey是特征的标号，如Outlook,Humidity
+                        nextKey = curNode[keyOfAttr].keys()[0]
+                        nextNode = curNode[keyOfAttr][nextKey]
+                        keyStack.append(nextKey)
+                        nodeStack.append(nextNode)
+                    else:
+                        classLabel = curNode[keyOfAttr]
+                        print classLabel
+                        return classLabel
+
 
 
 
@@ -191,5 +224,9 @@ class ID3(object):
 
 
 model = ID3()
-model.test()
-model.createTree()
+# model.test()
+tree = model.createTree()
+featLabels = ['Outlook', 'Temperature', 'Humidity', 'Wind']
+testVec = "Rain Mild High Weak".split(" ")
+testVec2 = "Overcast Mild High Weak".split(" ")
+model.classify(featLabels, testVec)
