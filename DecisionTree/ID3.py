@@ -1,10 +1,8 @@
 #encoding:utf-8
 __author__ = 'wangjiewen'
 
-import operator
 import json
 from math import log
-import treePlotter
 
 class ID3(object):
     def __init__(self):
@@ -204,13 +202,14 @@ class ID3(object):
                         nodeStack.append(nextNode)
                     else:
                         classLabel = curNode[keyOfAttr]
-                        print classLabel
                         return classLabel
 
 
-
-
     def test(self):
+        """
+        用作测试，没有什么用处
+        :return:
+        """
         dataSet = [[1, 1, 'yes'],
                [1, 1, 'yes'],
                [1, 0, 'no'],
@@ -220,7 +219,6 @@ class ID3(object):
         self.matrix = dataSet
         self.labels = labels
 
-        # print dataSet
 
 
 model = ID3()
@@ -229,4 +227,6 @@ tree = model.createTree()
 featLabels = ['Outlook', 'Temperature', 'Humidity', 'Wind']
 testVec = "Rain Mild High Weak".split(" ")
 testVec2 = "Overcast Mild High Weak".split(" ")
-model.classify(featLabels, testVec)
+
+result = model.classify(featLabels, testVec)
+print result
