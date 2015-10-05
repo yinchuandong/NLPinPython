@@ -55,6 +55,19 @@ def standEst(dataMat, user, simMeas, item):
     else:
         return ratSimTotal / simTotal
 
+def recommend(dataMat, user, N=3, simMeas=cosSim, estMethod=standEst):
+    unratedItems = np.nonzero(dataMat[user, :].A == 0)[1]
+    if len(unratedItems) == 0:
+        print 'every items are rated'
+        return []
+    itemScores = []
+    for item in unratedItems:
+        estimatedScore = estMethod(dataMat, user, simMeas, item)
+        itemScores.append((item, estimatedScore))
+
+    return sorted(itemScores, key=lambda jj: jj[1], reverse=True)[:N]
+
+
 
 def main():
     # dataMat = np.mat(loadExData())
@@ -75,7 +88,8 @@ def main():
     # print pearsSim(inA, inB)
     # print cosSim(inA, inB)
 
-    print standEst(dataMat, 2, cosSim, 2)
+    # print standEst(dataMat, 2, cosSim, 2)
+    print recommend(dataMat, 2)
 
     return
 
