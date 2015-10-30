@@ -68,6 +68,33 @@ def recommend(dataMat, user, N=3, simMeas=cosSim, estMethod=standEst):
     return sorted(itemScores, key=lambda jj: jj[1], reverse=True)[:N]
 
 
+def printMat(inMat, thresh=0.8):
+    for i in range(32):
+        for k in range(32):
+            if float(inMat[i, k]) > thresh:
+                print 1,
+            else:
+                print 0,
+        print ''
+
+
+def imgCompress(numSV=3, thresh=0.8):
+    myl = []
+    for line in open('0_5.txt').readlines():
+        newRow = []
+        for i in range(32):
+            newRow.append(int(line[i]))
+        myl.append(newRow)
+    myMat = np.mat(myl)
+    print "****original matrix******"
+    printMat(myMat, thresh)
+    U, Sigma, VT = la.svd(myMat)
+    SigRecon = np.mat(np.zeros((numSV, numSV)))
+    for k in range(numSV):  # construct diagonal matrix from vector
+        SigRecon[k, k] = Sigma[k]
+    reconMat = U[:, :numSV] * SigRecon * VT[:numSV, :]
+    print "****reconstructed matrix using %d singular values******" % numSV
+    printMat(reconMat, thresh)
 
 def main():
     # dataMat = np.mat(loadExData())
@@ -84,12 +111,14 @@ def main():
 
     inA = dataMat[:, 0]
     inB = dataMat[:, 4]
+
+    imgCompress()
     # print ecludSim(inA, inB)
     # print pearsSim(inA, inB)
     # print cosSim(inA, inB)
 
     # print standEst(dataMat, 2, cosSim, 2)
-    print recommend(dataMat, 2)
+    # print recommend(dataMat, 2)
 
     return
 
