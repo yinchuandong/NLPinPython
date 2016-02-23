@@ -14,6 +14,14 @@ def loadSimpData():
     return datMat,classLabels
 
 
+def stumpClassify(dataMat, dim, threshVal, threshIneq):
+    retArr = np.ones((np.shape(dataMat)[0], 1))
+    if threshIneq == 'lt':
+        retArr[dataMat[:, dim] <= threshVal] = -1.0
+    else:
+        retArr[dataMat[:, dim] > threshVal] = -1.0
+    return retArr
+
 
 def buildStump(dataArr, labelArr, D):
 
