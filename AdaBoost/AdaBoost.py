@@ -14,6 +14,19 @@ def loadSimpData():
     return dataMat, labelMat
 
 
+def loadDataFromFile(filename):
+    fr = open(filename)
+    dataArr = []
+    labelArr = []
+    for line in fr.readlines():
+        rowArr = []
+        lineArr = line.strip().split('\t')
+        for i in range(len(lineArr) - 1):
+            rowArr.append(float(lineArr[i]))
+        dataArr.append(rowArr)
+        labelArr.append(float(lineArr[-1]))
+    return np.mat(dataArr), np.mat(labelArr).T
+
 def stumpClassify(dataMat, dim, threshVal, threshIneq):
     m = np.shape(dataMat)[0]
     retArr = np.ones((m, 1))  # predicted class vector
@@ -100,8 +113,21 @@ def adaClassify(dataToClass, classifierArr):
 
 if __name__ == '__main__':
     print 'start'
-    dataMat, labelMat = loadSimpData()
-    classifierArr, aggClassEst = adaBoostTrainDS(dataMat, labelMat)
+    # dataMat, labelMat = loadSimpData()
+    # classifierArr, aggClassEst = adaBoostTrainDS(dataMat, labelMat)
     # result = adaClassify([0, 0], classifierArr)
-    result = adaClassify([[5, 5], [0, 0]], classifierArr)
-    print result
+    # result = adaClassify([[5, 5], [0, 0]], classifierArr)
+    # print result
+    
+    trainMat, trainLabelMat = loadDataFromFile('horseColicTraining2.txt')
+    testMat, testLabelMat = loadDataFromFile('horseColicTest2.txt')
+    classifierArr, aggClassEst = adaBoostTrainDS(trainMat, trainLabelMat, 50)
+    result = adaClassify(testMat, classifierArr)
+    errorArr = np.mat(np.ones((67, 1)))
+    errorNum = errorArr[result != testLabelMat].sum()
+    print 'test error: ', errorNum / 67.00
+    # print isinstance(1.0, int)
+
+
+
+
