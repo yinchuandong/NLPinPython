@@ -10,7 +10,7 @@ def loadSimpData():
                       [1.3, 1.],
                       [1., 1.],
                       [2., 1.]])
-    labelMat = np.mat([1.0, 1.0, -1.0, -1.0, 1.0])
+    labelMat = np.mat([1.0, 1.0, -1.0, -1.0, 1.0]).T
     return dataMat, labelMat
 
 
@@ -24,9 +24,7 @@ def stumpClassify(dataMat, dim, threshVal, threshIneq):
     return retArr
 
 
-def buildStump(dataArr, labelArr, D):
-    dataMat = np.mat(dataArr)
-    labelMat = np.mat(labelArr).T
+def buildStump(dataMat, labelMat, D):
     m, n = np.shape(dataMat)
     numSteps = 10.0
     bestStump = {}
@@ -55,25 +53,29 @@ def buildStump(dataArr, labelArr, D):
     return bestStump, minError, bestClassEst
 
 
-def adaBoostTrainDS(dataArr, labelArr, numIter=40):
+def adaBoostTrainDS(dataMat, labelMat, numIter=40):
+    """
+    " param dataMat: 
+    " param labelMat: column vector
+    """
     weakClassArr = []
-    m = np.shape(dataArr)[0]
+    m = np.shape(dataMat)[0]
     D = np.mat(np.ones((m, 1)) / m)
     aggClassEst = np.mat(np.zeros((m, 1)))
     for i in range(numIter):
-        bestStump, error, classEst = buildStump(dataArr, labelArr, D)
+        bestStump, error, classEst = buildStump(dataMat, labelMat, D)
         alpha = float(0.5 * np.log((1.0 - error) / max(error, 1e-16)))
         bestStump['alpha'] = alpha
         weakClassArr.append(bestStump)
         # calculate the exponent of D
-        expon = np.multiply(-1 * alpha * np.mat(labelArr).T, classEst)
+        expon = np.multiply(-1 * alpha * labelMat, classEst)
         D = np.multiply(D, np.exp(expon))
         D = D / D.sum()
 
         # calculate the aggregate error
         aggClassEst += alpha * classEst
         aggErrors = np.multiply(
-            np.sign(aggClassEst) != np.mat(labelArr).T, np.ones((m, 1)))
+            np.sign(aggClassEst) != labelMat, np.ones((m, 1)))
         errorRate = aggErrors.sum() / m
         print 'total error: ', errorRate
         if errorRate == 0.0:
@@ -82,6 +84,9 @@ def adaBoostTrainDS(dataArr, labelArr, numIter=40):
 
 
 def adaClassify(dataToClass, classifierArr):
+    """
+    " predict function
+    """
     dataMat = np.mat(dataToClass)
     m = np.shape(dataMat)[0]
     aggClassEst = np.mat(np.zeros((m, 1)))
@@ -94,12 +99,9 @@ def adaClassify(dataToClass, classifierArr):
     return np.sign(aggClassEst)
 
 if __name__ == '__main__':
-    # a = np.mat([1, 1, 1])
-    # b = np.mat([1, 1, 0])
-    # print np.multiply(a == b, a.T)
     print 'start'
-    dataArr, labelArr = loadSimpData()
-    weakClassArr, aggClassEst = adaBoostTrainDS(dataArr, labelArr)
-    # result = adaClassify([0, 0], weakClassArr)
-    result = adaClassify([[5, 5],[0,0]], weakClassArr)
+    dataMat, labelMat = loadSimpData()
+    classifierArr, aggClassEst = adaBoostTrainDS(dataMat, labelMat)
+    # result = adaClassify([0, 0], classifierArr)
+    result = adaClassify([[5, 5], [0, 0]], classifierArr)
     print result
