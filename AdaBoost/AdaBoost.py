@@ -27,6 +27,7 @@ def loadDataFromFile(filename):
         labelArr.append(float(lineArr[-1]))
     return np.mat(dataArr), np.mat(labelArr).T
 
+
 def stumpClassify(dataMat, dim, threshVal, threshIneq):
     m = np.shape(dataMat)[0]
     retArr = np.ones((m, 1))  # predicted class vector
@@ -41,18 +42,18 @@ def buildStump(dataMat, labelMat, D):
     m, n = np.shape(dataMat)
     numSteps = 10.0
     bestStump = {}
-    bestClassEst = np.mat((m, 1))
+    bestClassEst = np.mat(np.zeros((m, 1)))
     minError = np.inf
     for i in range(n):
         rangeMin = dataMat[:, i].min()
         rangeMax = dataMat[:, i].max()
-        stepSize = (rangeMax - rangeMax) / numSteps
+        stepSize = (rangeMax - rangeMin) / numSteps
         # loop from min to max in current dimension
         for j in range(-1, int(numSteps) + 1):
-            for inequal in ['lt', 'gt']:
+            for threshIneq in ['lt', 'gt']:
                 threshVal = rangeMin + float(j) * stepSize
                 predictedVals = stumpClassify(dataMat, i,
-                                              threshVal, inequal)
+                                              threshVal, threshIneq)
                 errArr = np.mat(np.ones((m, 1)))
                 errArr[predictedVals == labelMat] = 0
                 # calculate the total error by matrix multiplication
@@ -62,7 +63,7 @@ def buildStump(dataMat, labelMat, D):
                     bestClassEst = predictedVals.copy()
                     bestStump['dim'] = i
                     bestStump['threshVal'] = threshVal
-                    bestStump['threshIneq'] = inequal
+                    bestStump['threshIneq'] = threshIneq
     return bestStump, minError, bestClassEst
 
 
@@ -118,16 +119,12 @@ if __name__ == '__main__':
     # result = adaClassify([0, 0], classifierArr)
     # result = adaClassify([[5, 5], [0, 0]], classifierArr)
     # print result
-    
+
     trainMat, trainLabelMat = loadDataFromFile('horseColicTraining2.txt')
     testMat, testLabelMat = loadDataFromFile('horseColicTest2.txt')
-    classifierArr, aggClassEst = adaBoostTrainDS(trainMat, trainLabelMat, 50)
+    classifierArr, aggClassEst = adaBoostTrainDS(trainMat, trainLabelMat, 10)
     result = adaClassify(testMat, classifierArr)
     errorArr = np.mat(np.ones((67, 1)))
     errorNum = errorArr[result != testLabelMat].sum()
     print 'test error: ', errorNum / 67.00
     # print isinstance(1.0, int)
-
-
-
-
