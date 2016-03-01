@@ -122,7 +122,7 @@ if __name__ == '__main__':
 
     trainMat, trainLabelMat = loadDataFromFile('horseColicTraining2.txt')
     testMat, testLabelMat = loadDataFromFile('horseColicTest2.txt')
-    classifierArr, aggClassEst = adaBoostTrainDS(trainMat, trainLabelMat, 10)
+    classifierArr, aggClassEst = adaBoostTrainDS(trainMat, trainLabelMat, 70)
     result = adaClassify(testMat, classifierArr)
     errorArr = np.mat(np.ones((67, 1)))
     errorNum = errorArr[result != testLabelMat].sum()

@@ -1,8 +1,9 @@
-#encoding:utf-8
+# encoding:utf-8
 __author__ = 'wangjiewen'
 
 import json
 from math import log
+
 
 class ID3(object):
     def __init__(self):
@@ -33,7 +34,7 @@ class ID3(object):
         nums = len(dataSet)
         labelsCount = {}
 
-        #统计每个类别的数量
+        # 统计每个类别的数量
         for featVec in dataSet:
             classLabel = featVec[-1]
             if classLabel not in labelsCount.keys():
@@ -45,7 +46,6 @@ class ID3(object):
             prob = float(labelsCount[label]) / nums
             entropy -= prob * log(prob, 2)
         return entropy
-
 
     def splitDataSet(self, dataSet, col):
         """
@@ -75,7 +75,6 @@ class ID3(object):
                 tmpArr = result[key]
                 tmpArr.append(tmpLine)
 
-
         return result
 
     def selectMaxGainCol(self, dataSet):
@@ -84,13 +83,13 @@ class ID3(object):
         :param dataSet:
         :return:
         """
-        numsOfCol = len(dataSet[0]) - 1 #数据集的列数，最后一列为类标号
-        numsOfData = len(dataSet) #数据集的条目数量
+        numsOfCol = len(dataSet[0]) - 1  # 数据集的列数，最后一列为类标号
+        numsOfData = len(dataSet)  # 数据集的条目数量
 
-        maxGain = 0.0 #最大的信息增益
-        maxFeatCol = -1 #最大信息增益对应的列
+        maxGain = 0.0  # 最大的信息增益
+        maxFeatCol = -1  # 最大信息增益对应的列
 
-        #Entropy(S)
+        # Entropy(S)
         entropyS = self.calcEntropy(dataSet)
 
         for col in range(0, numsOfCol):
@@ -109,7 +108,6 @@ class ID3(object):
                 maxFeatCol = col
         return maxFeatCol
 
-
     def createTree(self):
         """
         创建决策树
@@ -118,44 +116,44 @@ class ID3(object):
         initCol = self.selectMaxGainCol(self.matrix)
         root = {self.labels[initCol]: {}}
 
-        #节点栈，保存当前访问的节点
+        # 节点栈，保存当前访问的节点
         nodeStack = []
         nodeStack.append(root[self.labels[initCol]])
 
-        #类标号栈，保存当前进行划分的类标号
+        # 类标号栈，保存当前进行划分的类标号
         colStack = []
         colStack.append(initCol)
 
-        #数据站，保存当前需要被划分的数据，和类标号一一对应
+        # 数据站，保存当前需要被划分的数据，和类标号一一对应
         dataStack = []
         dataStack.append(self.matrix)
 
         while(len(dataStack) > 0):
             dataSet = dataStack.pop()
             col = colStack.pop()
-            pCur = nodeStack.pop() #指向当前节点的指针
+            pCur = nodeStack.pop()  # 指向当前节点的指针
 
-            #按属性进行划分后的数据字典
+            # 按属性进行划分后的数据字典
             splitDict = self.splitDataSet(dataSet, col)
 
             for key in splitDict:
                 data = splitDict[key]
 
-                #如果全部属于正类或负类，则标记其类别，代表已经划分完成
+                # 如果全部属于正类或负类，则标记其类别，代表已经划分完成
                 classSet = set(example[-1] for example in data)
                 if len(classSet) == 1:
                     endLabel = classSet.pop()
                     label = self.labels[col]
 
-                    #分情况讨论，当节点具有分支的时候，
+                    # 分情况讨论，当节点具有分支的时候，
                     if label in pCur.keys():
                         pCur[label][key] = endLabel
                     else:
                         pCur[key] = endLabel
                     continue
 
-                #如果属性的还可以继续划分，则将该节点加入对应的栈中
-                #因为最后一行为类标号，因此要>1
+                # 如果属性的还可以继续划分，则将该节点加入对应的栈中
+                # 因为最后一行为类标号，因此要>1
                 if len(data[0]) > 1:
                     tmpMaxCol = self.selectMaxGainCol(data)
                     label = self.labels[tmpMaxCol]
@@ -168,7 +166,6 @@ class ID3(object):
         print json.dumps(root, indent=4)
         self.tree = root
         return root
-
 
     def classify(self, featLabels=[], testVec=[]):
         """
@@ -189,13 +186,13 @@ class ID3(object):
             curNode = nodeStack.pop()
             featIndex = featLabels.index(curKey)
 
-            #keyOfAttr是属性的key, 例如sunny,rainy
+            # keyOfAttr是属性的key, 例如sunny,rainy
             for keyOfAttr in curNode.keys():
                 if(testVec[featIndex] == keyOfAttr):
 
-                    #如果节点类型为字典，则不是叶节点，继续加入栈中
+                    # 如果节点类型为字典，则不是叶节点，继续加入栈中
                     if type(curNode[keyOfAttr]).__name__ == 'dict':
-                        #nextKey是特征的标号，如Outlook,Humidity
+                        # nextKey是特征的标号，如Outlook,Humidity
                         nextKey = curNode[keyOfAttr].keys()[0]
                         nextNode = curNode[keyOfAttr][nextKey]
                         keyStack.append(nextKey)
@@ -204,29 +201,28 @@ class ID3(object):
                         classLabel = curNode[keyOfAttr]
                         return classLabel
 
-
     def test(self):
         """
         用作测试，没有什么用处
         :return:
         """
         dataSet = [[1, 1, 'yes'],
-               [1, 1, 'yes'],
-               [1, 0, 'no'],
-               [0, 1, 'no'],
-               [0, 1, 'no']]
+                   [1, 1, 'yes'],
+                   [1, 0, 'no'],
+                   [0, 1, 'no'],
+                   [0, 1, 'no']]
         labels = ['no surfacing', 'flippers']
         self.matrix = dataSet
         self.labels = labels
 
+if __name__ == '__main__':
 
+    model = ID3()
+    # model.test()
+    tree = model.createTree()
+    featLabels = ['Outlook', 'Temperature', 'Humidity', 'Wind']
+    testVec = "Rain Mild High Weak".split(" ")
+    testVec2 = "Overcast Mild High Weak".split(" ")
 
-model = ID3()
-# model.test()
-tree = model.createTree()
-featLabels = ['Outlook', 'Temperature', 'Humidity', 'Wind']
-testVec = "Rain Mild High Weak".split(" ")
-testVec2 = "Overcast Mild High Weak".split(" ")
-
-result = model.classify(featLabels, testVec)
-print result
+    result = model.classify(featLabels, testVec)
+    print result
