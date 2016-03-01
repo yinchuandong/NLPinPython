@@ -16,10 +16,16 @@ def loadData(filename):
 
 
 def standardRegression(dataMat, labelMat):
-
-    return
+    xTx = dataMat.T * dataMat
+    if np.linalg.det(xTx) == 0:
+        raise NameError('x is a singular matrix')
+    W = xTx.I * dataMat.T * labelMat
+    return W
 
 if __name__ == '__main__':
     print 'start:'
     dataMat, labelMat = loadData('ex0.txt')
-    
+    W = standardRegression(dataMat, labelMat)
+    print W
+    # print dataMat
+    # print labelMat
