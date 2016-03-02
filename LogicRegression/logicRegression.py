@@ -21,7 +21,7 @@ def sigmoid(inX):
 
 def gradAscent(dataMatIn, labelMatIn):
     dataMat = np.mat(dataMatIn)
-    labelMat = np.mat(labelMatIn).transpose()
+    labelMat = np.mat(labelMatIn).T
     m, n = np.shape(dataMat)
     alpha = 0.001
     maxCycles = 500
@@ -29,7 +29,7 @@ def gradAscent(dataMatIn, labelMatIn):
     for k in range(maxCycles):
         h = sigmoid(dataMat * weights)
         error = (labelMat - h)
-        weights = weights + alpha * dataMat.transpose() * error
+        weights = weights + alpha * dataMat.T * error
     return weights
 
 
