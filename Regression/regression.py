@@ -22,6 +22,11 @@ def standardRegression(dataMat, labelMat):
     W = xTx.I * dataMat.T * labelMat
     return W
 
+
+def gradientDescent(dataMat, labelMat):
+
+    return
+
 if __name__ == '__main__':
     print 'start:'
     dataMat, labelMat = loadData('ex0.txt')
