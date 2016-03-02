@@ -37,32 +37,31 @@ def gradDescent(dataMat, labelMat, numIter=1000):
 
 def stocGradDescent(dataMat, labelMat, numIter=1000):
     m, n = np.shape(dataMat)
-    weights = np.ones(n)  # shape: 1 x n
+    weights = np.ones((n, 1))  # shape: 1 x n
     for j in range(numIter):
         dataIndex = range(m)
         for i in range(m):
             alpha = 4 / (1.0 + i + j) + 0.0001
             randId = int(np.random.uniform(0, len(dataIndex)))
-            h = sum(dataMat[randId] * weights)  # shape:(1 x n) * (n * 1)
-            error = h - labelMat[randId]  # shape: 1 x 1
+            h = dataMat[randId] * weights  # shape:(1 x n) * (n * 1)
+            # tranform mat to real number, shape: 1 x 1
+            error = np.sum(h - labelMat[randId])
             # shape: (1 x 1) * (1 x n) = 1 x n
-            weights = weights - alpha * error * dataMat[randId]
+            weights = weights - alpha * error * dataMat[randId].T
             del(dataIndex[randId])
-
     return weights
+
 
 if __name__ == '__main__':
     print 'start:'
-    dataArr, labelArr = loadData('ex0.txt')
-    dataMat = np.mat(dataArr)
-    labelMat = np.mat(labelArr).T
+    dataMat, labelMat = loadData('ex0.txt')
+
     W = standardRegression(dataMat, labelMat)
     print W
 
-    W = stocGradDescent(np.array(dataArr), labelArr)
+    W = gradDescent(dataMat, labelMat)
     print W
 
-    # W = gradDescent(dataMat, labelMat)
-    # print W
-    # print dataMat
-    # print labelMat
+    W = stocGradDescent(dataMat, labelMat)
+    print W
+
