@@ -12,7 +12,7 @@ def loadData(filename):
             row.append(float(lineArr[i]))
         dataArr.append(row)
         labelArr.append(float(lineArr[-1]))
-    return dataArr, labelArr
+    return np.mat(dataArr), np.mat(labelArr).T
 
 
 def standardRegression(dataMat, labelMat):
@@ -37,17 +37,17 @@ def gradDescent(dataMat, labelMat, numIter=1000):
 
 def stocGradDescent(dataMat, labelMat, numIter=1000):
     m, n = np.shape(dataMat)
-    weights = np.ones((n, 1))  # shape: 1 x n
+    weights = np.ones((n, 1))  # shape: n x 1
     for j in range(numIter):
         dataIndex = range(m)
         for i in range(m):
             alpha = 4 / (1.0 + i + j) + 0.0001
             randId = int(np.random.uniform(0, len(dataIndex)))
             h = dataMat[randId] * weights  # shape:(1 x n) * (n * 1)
-            # tranform mat to real number, shape: 1 x 1
-            error = np.sum(h - labelMat[randId])
-            # shape: (1 x 1) * (1 x n) = 1 x n
-            weights = weights - alpha * error * dataMat[randId].T
+            # shape: 1 x 1
+            error = h - labelMat[randId]
+            # shape:  (n x 1) = (n x 1) * (1 x 1)
+            weights = weights - alpha * dataMat[randId].T * error
             del(dataIndex[randId])
     return weights
 
