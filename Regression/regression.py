@@ -73,11 +73,17 @@ def gradLWLR(inX, dataMat, labelMat, k=0.01, numIter=500):
     for i in range(m):
         diffMat = inX - dataMat[i, :]
         W[i, i] = np.exp((diffMat * diffMat.T) / (-2.0 * k ** 2))
-    return
+    for j in range(numIter):
+        h = dataMat * theta
+        error = h - labelMat
+        theta = theta - alpha * dataMat.T * W * error
+    return inX * theta
 
 def testLWLR():
     dataMat, labelMat = loadData('ex0.txt')
-    gradLWLR(dataMat[1], dataMat, labelMat)
+    print labelMat[0]
+    outY = gradLWLR(dataMat[0], dataMat, labelMat, 1)
+    print outY
 
 if __name__ == '__main__':
     print 'start:'
