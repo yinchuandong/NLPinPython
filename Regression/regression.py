@@ -85,10 +85,27 @@ def testLWLR():
     outY = gradLWLR(dataMat[0], dataMat, labelMat, 1)
     print outY
 
+
+def ridgeRegression(dataMat, labelMat, lam=0.2, numIter=500):
+    m, n = np.shape(dataMat)
+    alpha = 0.001
+    theta = np.ones((n, 1))
+    for i in range(numIter):
+        h = dataMat * theta
+        error = h - labelMat
+        theta = theta - alpha * (dataMat.T * error + lam * theta)
+    return theta
+
+def testRidgeRegress():
+    dataMat, labelMat = loadData('ex0.txt')
+    theta = ridgeRegression(dataMat, labelMat, 0.2)
+    print theta
+
 if __name__ == '__main__':
     print 'start:'
     # testForSimppleRegression()
-    testLWLR()
+    # testLWLR()
+    testRidgeRegress()
 
 
 
