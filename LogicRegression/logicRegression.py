@@ -125,14 +125,14 @@ def plotBestFit(weights):
 
 if __name__ == '__main__':
     dataMat, labelMat = loadDataSet()
-    # weights = gradAscent(dataMat, labelMat)
-    # plotBestFit(weights.getA())
-    # weights = stocGradAscent(np.array(dataMat), labelMat, 200)
-    # weights = horseColicTest()
-    # plotBestFit(weights)
-    # print weights
+    weights = gradAscent(dataMat, labelMat)
+    plotBestFit(weights.getA())
+    weights = stocGradAscent(np.array(dataMat), labelMat, 200)
+    weights = horseColicTest()
+    plotBestFit(weights)
+    print weights
     
-    multiTest()
+    # multiTest()
 
 
 
