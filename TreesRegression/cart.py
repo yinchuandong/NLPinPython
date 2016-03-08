@@ -1,4 +1,5 @@
 import numpy as np
+import json
 
 
 def loadData(filename):
@@ -61,7 +62,7 @@ def chooseBestFeature(dataMat, leafType=regLeaf, errType=regError, ops=(1, 4)):
 
     # if the decrease (S - newS) is less than threshold tolS,
     # then stop spliting
-    if (S - newS) < tolS:
+    if (S - bestS) < tolS:
         return None, leafType(dataMat)
 
     mat0, mat1 = binSplit(dataMat, bestIndex, bestValue)
@@ -78,13 +79,18 @@ def createTree(dataMat, leafType=regLeaf, errType=regError, ops=(1, 4)):
     retTree = {}
     retTree['featIndex'] = featIndex
     retTree['featValue'] = featValue
+
     nodeStack = []
     nodeStack.append(retTree)
+    dataStack = []
+    dataStack.append(dataMat)
     while len(nodeStack) != 0:
         curNode = nodeStack.pop()
         if curNode['featIndex'] is None:
             continue
-        leftMat, rightMat = binSplit(dataMat, curNode['featIndex'], curNode['featValue'])
+        #  cannot always binSplit dataMat, need a stack
+        curMat = dataStack.pop()
+        leftMat, rightMat = binSplit(curMat, curNode['featIndex'], curNode['featValue'])
         leftIndex, leftValue = chooseBestFeature(leftMat, leafType, errType, ops)
         rightIndex, rightValue = chooseBestFeature(rightMat, leafType, errType, ops)
         leftTree = {}
@@ -95,18 +101,20 @@ def createTree(dataMat, leafType=regLeaf, errType=regError, ops=(1, 4)):
         rightTree['featIndex'] = rightIndex
         rightTree['featValue'] = rightValue
         curNode['right'] = rightTree
+        dataStack.append(rightMat)
         nodeStack.append(rightTree)
+        dataStack.append(leftMat)
         nodeStack.append(leftTree)
 
-    print retTree
     return retTree
 
 
 if __name__ == '__main__':
     print 'start'
-    dataMat = loadData('ex0.txt')
+    dataMat = loadData('ex00.txt')
     # subMat1, subMat2 = binSplit(dataMat, 2, 2.4)
-    createTree(dataMat)
+    retTree = createTree(dataMat)
+    print json.dumps(retTree, indent=4)
 
 
 
