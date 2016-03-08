@@ -93,25 +93,33 @@ def createTree(dataMat, leafType=regLeaf, errType=regError, ops=(1, 4)):
         leftMat, rightMat = binSplit(curMat, curNode['featIndex'], curNode['featValue'])
         leftIndex, leftValue = chooseBestFeature(leftMat, leafType, errType, ops)
         rightIndex, rightValue = chooseBestFeature(rightMat, leafType, errType, ops)
-        leftTree = {}
-        leftTree['featIndex'] = leftIndex
-        leftTree['featValue'] = leftValue
-        curNode['left'] = leftTree
-        rightTree = {}
-        rightTree['featIndex'] = rightIndex
-        rightTree['featValue'] = rightValue
-        curNode['right'] = rightTree
-        dataStack.append(rightMat)
-        nodeStack.append(rightTree)
-        dataStack.append(leftMat)
-        nodeStack.append(leftTree)
+        # need to judge whethe leftIndex is None
+        if rightIndex is None:
+            curNode['right'] = rightValue
+        else:
+            rightTree = {}
+            rightTree['featIndex'] = rightIndex
+            rightTree['featValue'] = rightValue
+            curNode['right'] = rightTree
+            dataStack.append(rightMat)
+            nodeStack.append(rightTree)
+
+        if leftIndex is None:
+            curNode['left'] = leftValue
+        else:
+            leftTree = {}
+            leftTree['featIndex'] = leftIndex
+            leftTree['featValue'] = leftValue
+            curNode['left'] = leftTree
+            dataStack.append(leftMat)
+            nodeStack.append(leftTree)
 
     return retTree
 
 
 if __name__ == '__main__':
     print 'start'
-    dataMat = loadData('ex00.txt')
+    dataMat = loadData('ex0.txt')
     # subMat1, subMat2 = binSplit(dataMat, 2, 2.4)
     retTree = createTree(dataMat)
     print json.dumps(retTree, indent=4)
