@@ -1,5 +1,6 @@
 import numpy as np
 import json
+import time
 
 
 def loadData(filename):
@@ -36,6 +37,7 @@ def chooseBestFeature(dataMat, leafType=regLeaf, errType=regError, ops=(1, 4)):
     leafType : regLeaf(dataMat), optional
     errType : regError(dataMat), optional
     ops: (tolS, tolN), optional
+        for prepruning trees
         tolS is a tolerance on the error reduction
         tolN is the minimum data instances to include in a split
     """
@@ -117,13 +119,57 @@ def createTree(dataMat, leafType=regLeaf, errType=regError, ops=(1, 4)):
     return retTree
 
 
+def isTree(obj):
+    return type(obj).__name__ == 'dict'
+
+
+def getMean2(tree):
+    """
+    @deprecated
+    non-recurrent algorithm, but cost more time on small data set
+    """
+    nodeStack = []
+    nodeStack.append(tree)
+    stateStack = []
+    stateStack.append(None)
+    curNode = tree
+    while len(nodeStack) != 0:
+        while isTree(curNode['left']):
+            curNode = curNode['left']
+            nodeStack.append(curNode)
+            stateStack.append('left')
+        if isTree(curNode['right']):
+            curNode = curNode['right']
+            nodeStack.append(curNode)
+            stateStack.append('right')
+        if not isTree(curNode['left']) and not isTree(curNode['right']):
+            curNode = nodeStack.pop()
+            tmp = stateStack.pop()
+            parent = nodeStack[-1] if len(nodeStack) != 0 else None
+            if tmp is not None:
+                parent[tmp] = (curNode['left'] + curNode['right']) / 2.0
+                curNode = parent
+            else:
+                tree = (curNode['left'] + curNode['right']) / 2.0
+    return tree
+
+
+def getMean(tree):
+    if isTree(tree['right']):
+        tree['right'] = getMean(tree['right'])
+    if isTree(tree['left']):
+        tree['left'] = getMean(tree['left'])
+    return (tree['left'] + tree['right']) / 2.0
+
 if __name__ == '__main__':
     print 'start'
-    dataMat = loadData('ex0.txt')
+    dataMat = loadData('ex2.txt')
     # subMat1, subMat2 = binSplit(dataMat, 2, 2.4)
     retTree = createTree(dataMat)
     print json.dumps(retTree, indent=4)
-
-
-
-
+    start = time.clock()
+    print getMean2(retTree)
+    print 'time:', time.clock() - start
+    start = time.clock()
+    print getMean(retTree)
+    print 'time:', time.clock() - start
