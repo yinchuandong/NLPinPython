@@ -161,6 +161,25 @@ def getMean(tree):
         tree['left'] = getMean(tree['left'])
     return (tree['left'] + tree['right']) / 2.0
 
+
+def prune(tree, dataMat):
+    # no data to split
+    if np.shape(dataMat)[0] == 0:
+        return getMean(tree)
+    if isTree(tree['left']) or isTree(tree['right']):
+        lMat, rMat = binSplit(dataMat, tree['featIndex'], tree['featValue'])
+    if isTree(tree['left']):
+        tree['left'] = prune(tree['left'], lMat)
+    if isTree(tree['right']):
+        tree['right'] = prune(tree['right'], rMat)
+
+    if not isTree(tree['left']) and not isTree(tree['right']):
+        lMat, rMat = binSplit(dataMat, tree['featIndex'], tree['featIndex'])
+        # errNoMerge = 
+    else:
+        return tree
+
+
 if __name__ == '__main__':
     print 'start'
     dataMat = loadData('ex2.txt')
