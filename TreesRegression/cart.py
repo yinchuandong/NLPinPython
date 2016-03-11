@@ -174,21 +174,30 @@ def prune(tree, dataMat):
         tree['right'] = prune(tree['right'], rMat)
 
     if not isTree(tree['left']) and not isTree(tree['right']):
-        lMat, rMat = binSplit(dataMat, tree['featIndex'], tree['featIndex'])
-        # errNoMerge = 
+        lMat, rMat = binSplit(dataMat, tree['featIndex'], tree['featValue'])
+        errNoMerge = np.sum(np.power(lMat[:, -1] - tree['left'], 2))
+        errNoMerge = np.sum(np.power(rMat[:, -1] - tree['right'], 2)) + errNoMerge
+        treeMean = (tree['left'] + tree['right']) / 2.0
+        errMerge = np.sum(np.power(dataMat[:, -1] - treeMean, 2))
+        if errMerge < errNoMerge:
+            print 'merging'
+            return treeMean
+        else:
+            return tree
     else:
         return tree
 
 
 if __name__ == '__main__':
     print 'start'
-    dataMat = loadData('ex2.txt')
+    dataMat = loadData('ex2test.txt')
     # subMat1, subMat2 = binSplit(dataMat, 2, 2.4)
-    retTree = createTree(dataMat)
+    retTree = createTree(dataMat, ops=(0, 1))
+    retTree = prune(retTree, dataMat)
     print json.dumps(retTree, indent=4)
-    start = time.clock()
-    print getMean2(retTree)
-    print 'time:', time.clock() - start
-    start = time.clock()
-    print getMean(retTree)
-    print 'time:', time.clock() - start
+    # start = time.clock()
+    # print getMean2(retTree)
+    # print 'time:', time.clock() - start
+    # start = time.clock()
+    # print getMean(retTree)
+    # print 'time:', time.clock() - start
