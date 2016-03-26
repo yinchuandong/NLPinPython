@@ -1,12 +1,37 @@
-from __future__ import division
-__author__ = 'wangjiewen'
+import numpy as np
 
-import BeautifulSoup
-import nltk, re, pprint
-from urllib import urlopen
 
-nltk.download()
-text = nltk.word_tokenize("I am a programmer")
-list = nltk.pos_tag(text)
+def loadData():
+    # mat = [
+    #     [13, 16, 12, 11],
+    #     [15, 17, 12, 12],
+    #     [14, 14, 13, 13],
+    #     [13, 10, 10, 11]
+    # ]
+    mat = [
+        [9, 2, 7, 8],
+        [6, 4, 3, 7],
+        [5, 8, 1, 8],
+        [7, 6, 9, 4]
+    ]
+    return mat
 
-print(list)
+def test():
+    from munkres import Munkres, print_matrix
+
+    matrix = loadData()
+
+    m = Munkres()
+    indexes = m.compute(matrix)
+    print_matrix(matrix, msg='Lowest cost through this matrix:')
+    total = 0
+    for row, column in indexes:
+        value = matrix[row][column]
+        total += value
+        print '(%d, %d) -> %d' % (row, column, value)
+    print 'total cost: %d' % total
+
+
+
+if __name__ == '__main__':
+    test()
