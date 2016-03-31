@@ -1,37 +1,29 @@
 import numpy as np
 
 
-def loadData():
-    # mat = [
-    #     [13, 16, 12, 11],
-    #     [15, 17, 12, 12],
-    #     [14, 14, 13, 13],
-    #     [13, 10, 10, 11]
-    # ]
-    mat = [
-        [9, 2, 7, 8],
-        [6, 4, 3, 7],
-        [5, 8, 1, 8],
-        [7, 6, 9, 4]
+def main():
+    D = [0, 0, 1, 1]
+    X = [
+        [1, 2],
+        [3, 4],
+        [5, 6],
+        [7, 8]
     ]
-    return mat
+    C = [
+        [2, 3],
+        [6, 7]
+    ]
+    D = np.mat(D).T
+    X = np.mat(X)
+    C = np.mat(C)
+    print C[D]
+    # print X[(D[:, 0].A == 1)]
+    # print np.nonzero(D[:, 0].A == 0)
+    # print X[np.nonzero(D[:, 0].A == 1)[0]]
+    return
 
-def test():
-    from munkres import Munkres, print_matrix
-
-    matrix = loadData()
-
-    m = Munkres()
-    indexes = m.compute(matrix)
-    print_matrix(matrix, msg='Lowest cost through this matrix:')
-    total = 0
-    for row, column in indexes:
-        value = matrix[row][column]
-        total += value
-        print '(%d, %d) -> %d' % (row, column, value)
-    print 'total cost: %d' % total
 
 
 
 if __name__ == '__main__':
-    test()
+    # main()
