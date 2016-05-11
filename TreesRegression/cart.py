@@ -134,7 +134,7 @@ def getMean2(tree):
     stateStack.append(None)
     curNode = tree
     while len(nodeStack) != 0:
-        while isTree(curNode['left']):
+        if isTree(curNode['left']):
             curNode = curNode['left']
             nodeStack.append(curNode)
             stateStack.append('left')

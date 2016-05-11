@@ -5,224 +5,118 @@ import json
 from math import log
 
 
-class ID3(object):
-    def __init__(self):
-        self.matrix = []
-        self.labels = ['Outlook', 'Temperature', 'Humidity', 'Wind']
-        self.tree = {}
-        self.loadFile('trainset.txt')
+def loadFile(filename):
+    """
+    加载数据文件
+    :param filename: 文件路径
+    :return: void
+    """
+    fr = open(filename)
+    lines = fr.readlines()
 
-    def loadFile(self, filename):
-        """
-        加载数据文件
-        :param filename: 文件路径
-        :return: void
-        """
-        fr = open(filename)
-        lines = fr.readlines()
+    dataSet = []
+    for lineStr in lines:
+        lineArr = lineStr.strip().split(' ')
+        dataSet.append(lineArr)
+    return dataSet
 
-        for lineStr in lines:
-            lineArr = lineStr.strip().split(' ')
-            self.matrix.append(lineArr)
 
-    def calcEntropy(self, dataSet):
-        """
-        计算熵 entropy = -∑p(x) * log p(x)
-        :param dataSet: 数据矩阵，最后一列为类标号
-        :return: float 熵值
-        """
-        nums = len(dataSet)
-        labelsCount = {}
+def calcEntropy(dataSet):
+    nums = len(dataSet)
+    labelsCount = {}
+    for featVec in dataSet:
+        label = featVec[-1]
+        if label not in labelsCount:
+            labelsCount[label] = 1
+        else:
+            labelsCount[label] += 1
+    entropy = 0.0
+    for label in labelsCount:
+        prob = float(labelsCount[label]) / nums
+        entropy -= prob * log(prob)
+    return entropy
 
-        # 统计每个类别的数量
-        for featVec in dataSet:
-            classLabel = featVec[-1]
-            if classLabel not in labelsCount.keys():
-                labelsCount[classLabel] = 0
-            labelsCount[classLabel] += 1
 
-        entropy = 0.0
-        for label in labelsCount:
-            prob = float(labelsCount[label]) / nums
-            entropy -= prob * log(prob, 2)
-        return entropy
+def splitDataSet(dataSet, col):
+    result = {}
+    for featVec in dataSet:
+        key = featVec[col]
+        tmpArr = featVec[:col]
+        tmpArr.extend(featVec[col + 1:])
+        if key not in result:
+            result[key] = []
+            result[key].append(tmpArr)
+        else:
+            result[key].append(tmpArr)
+    return result
 
-    def splitDataSet(self, dataSet, col):
-        """
-        将dataSet按照第col列分割，返回第col列值为value的数据
-        :param dataSet: []
-        :param col: 分割的列
-        :return: {} col列所取值的对象数组
-        """
-        # result = []
-        # for featVec in dataSet:
-        #     if featVec[col] == value:
-        #         tmpLeft = featVec[:col]
-        #         tmpLeft.extend(featVec[col + 1:])
-        #         result.append(tmpLeft)
-        result = {}
-        for featVec in dataSet:
-            # tmpLine = featVec[:col]
-            # tmpLine.extend(featVec[col + 1:])
-            tmpLine = featVec[:]
 
-            key = featVec[col]
-            if key not in result.keys():
-                tmpArr = []
-                tmpArr.append(tmpLine)
-                result[key] = tmpArr
-            else:
-                tmpArr = result[key]
-                tmpArr.append(tmpLine)
+def selectMaxGainCol(dataSet):
+    """
+    选择信息最大信息增益的列标号
+    :param dataSet:
+    :return:
+    """
+    numsOfCol = len(dataSet[0]) - 1  # 数据集的列数，最后一列为类标号
+    numsOfData = len(dataSet)  # 数据集的条目数量
+    maxGain = 0.0  # 最大的信息增益
+    maxFeatCol = -1  # 最大信息增益对应的列
+    # Entropy(S)
+    entropyS = calcEntropy(dataSet)
+    for col in range(0, numsOfCol):
+        featDict = splitDataSet(dataSet, col)
+        tmpGain = entropyS
+        for key in featDict.keys():
+            featArr = featDict[key]
+            entropyFeat = calcEntropy(featArr)
+            delta = (len(featArr) / float(numsOfData)) * entropyFeat
+            tmpGain -= delta
+        # print "Gain(", labels[col], ") =", tmpGain
+        if tmpGain > maxGain:
+            maxGain = tmpGain
+            maxFeatCol = col
+    return maxFeatCol
 
-        return result
 
-    def selectMaxGainCol(self, dataSet):
-        """
-        选择信息最大信息增益的列标号
-        :param dataSet:
-        :return:
-        """
-        numsOfCol = len(dataSet[0]) - 1  # 数据集的列数，最后一列为类标号
-        numsOfData = len(dataSet)  # 数据集的条目数量
+def createTree(dataSet, labels):
+    classList = [featVec[-1] for featVec in dataSet]
+    if len(set(classList)) == 1:
+        return classList[0]
+    bestCol = selectMaxGainCol(dataSet)
+    bestColLabel = labels[bestCol]
+    tree = {}
+    tree[bestColLabel] = {}
+    labels = labels[:]  # copy in case of bad reference
+    del(labels[bestCol])  # del after spliting on it
+    featVals = [featVec[bestCol] for featVec in dataSet]
+    uniqueVals = set(featVals)
+    subData = splitDataSet(dataSet, bestCol)
+    for val in uniqueVals:
+        subtree = createTree(subData[val], labels[:])
+        tree[bestColLabel][val] = subtree
+    return tree
 
-        maxGain = 0.0  # 最大的信息增益
-        maxFeatCol = -1  # 最大信息增益对应的列
 
-        # Entropy(S)
-        entropyS = self.calcEntropy(dataSet)
+def classify(tree, featLabels, testVec):
+    firstKey = tree.keys()[0]
+    secondDict = tree[firstKey]
+    featIndex = featLabels.index(firstKey)
+    key = testVec[featIndex]
+    featValue = secondDict[key]
+    if isinstance(featValue, dict):
+        classLabel = classify(featValue, featLabels, testVec)
+    else:
+        classLabel = featValue
+    return classLabel
 
-        for col in range(0, numsOfCol):
-            featDict = self.splitDataSet(dataSet, col)
-
-            tmpGain = entropyS
-            for key in featDict.keys():
-                featArr = featDict[key]
-                entropyFeat = self.calcEntropy(featArr)
-                delta = (len(featArr) / float(numsOfData)) * entropyFeat
-                tmpGain -= delta
-
-            # print "Gain(", self.labels[col], ") =", tmpGain
-            if tmpGain > maxGain:
-                maxGain = tmpGain
-                maxFeatCol = col
-        return maxFeatCol
-
-    def createTree(self):
-        """
-        创建决策树
-        :return:
-        """
-        initCol = self.selectMaxGainCol(self.matrix)
-        root = {self.labels[initCol]: {}}
-
-        # 节点栈，保存当前访问的节点
-        nodeStack = []
-        nodeStack.append(root[self.labels[initCol]])
-
-        # 类标号栈，保存当前进行划分的类标号
-        colStack = []
-        colStack.append(initCol)
-
-        # 数据站，保存当前需要被划分的数据，和类标号一一对应
-        dataStack = []
-        dataStack.append(self.matrix)
-
-        while(len(dataStack) > 0):
-            dataSet = dataStack.pop()
-            col = colStack.pop()
-            pCur = nodeStack.pop()  # 指向当前节点的指针
-
-            # 按属性进行划分后的数据字典
-            splitDict = self.splitDataSet(dataSet, col)
-
-            for key in splitDict:
-                data = splitDict[key]
-
-                # 如果全部属于正类或负类，则标记其类别，代表已经划分完成
-                classSet = set(example[-1] for example in data)
-                if len(classSet) == 1:
-                    endLabel = classSet.pop()
-                    label = self.labels[col]
-
-                    # 分情况讨论，当节点具有分支的时候，
-                    if label in pCur.keys():
-                        pCur[label][key] = endLabel
-                    else:
-                        pCur[key] = endLabel
-                    continue
-
-                # 如果属性的还可以继续划分，则将该节点加入对应的栈中
-                # 因为最后一行为类标号，因此要>1
-                if len(data[0]) > 1:
-                    tmpMaxCol = self.selectMaxGainCol(data)
-                    label = self.labels[tmpMaxCol]
-                    pCur[key] = {}
-                    pCur[key][label] = {}
-                    dataStack.append(data)
-                    colStack.append(tmpMaxCol)
-                    nodeStack.append(pCur[key])
-
-        print json.dumps(root, indent=4)
-        self.tree = root
-        return root
-
-    def classify(self, featLabels=[], testVec=[]):
-        """
-        分类函数预测
-        :param testVec:
-        :return:
-        """
-        rootKey = self.tree.keys()[0]
-        rootNode = self.tree[rootKey]
-
-        keyStack = []
-        keyStack.append(rootKey)
-        nodeStack = []
-        nodeStack.append(rootNode)
-
-        while len(nodeStack) > 0:
-            curKey = keyStack.pop()
-            curNode = nodeStack.pop()
-            featIndex = featLabels.index(curKey)
-
-            # keyOfAttr是属性的key, 例如sunny,rainy
-            for keyOfAttr in curNode.keys():
-                if(testVec[featIndex] == keyOfAttr):
-
-                    # 如果节点类型为字典，则不是叶节点，继续加入栈中
-                    if type(curNode[keyOfAttr]).__name__ == 'dict':
-                        # nextKey是特征的标号，如Outlook,Humidity
-                        nextKey = curNode[keyOfAttr].keys()[0]
-                        nextNode = curNode[keyOfAttr][nextKey]
-                        keyStack.append(nextKey)
-                        nodeStack.append(nextNode)
-                    else:
-                        classLabel = curNode[keyOfAttr]
-                        return classLabel
-
-    def test(self):
-        """
-        用作测试，没有什么用处
-        :return:
-        """
-        dataSet = [[1, 1, 'yes'],
-                   [1, 1, 'yes'],
-                   [1, 0, 'no'],
-                   [0, 1, 'no'],
-                   [0, 1, 'no']]
-        labels = ['no surfacing', 'flippers']
-        self.matrix = dataSet
-        self.labels = labels
 
 if __name__ == '__main__':
 
-    model = ID3()
-    # model.test()
-    tree = model.createTree()
+    dataSet = loadFile('trainset.txt')
     featLabels = ['Outlook', 'Temperature', 'Humidity', 'Wind']
     testVec = "Rain Mild High Weak".split(" ")
     testVec2 = "Overcast Mild High Weak".split(" ")
-
-    result = model.classify(featLabels, testVec)
+    tree = createTree(dataSet, featLabels)
+    print json.dumps(tree, indent=4)
+    result = classify(tree, featLabels, testVec)
     print result
