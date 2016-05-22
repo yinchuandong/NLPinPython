@@ -92,7 +92,7 @@ def createTree(dataSet, labels):
     uniqueVals = set(featVals)
     subData = splitDataSet(dataSet, bestCol)
     for val in uniqueVals:
-        subtree = createTree(subData[val], labels[:])
+        subtree = createTree(subData[val], labels)
         tree[bestColLabel][val] = subtree
     return tree
 

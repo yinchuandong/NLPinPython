@@ -38,12 +38,13 @@ def createTree(dataSet, labels):
     bestColLabel = labels[bestCol]
     tree = {}
     tree[bestColLabel] = {}
+    labels = labels[:]  # copy in case of bad reference
     del(labels[bestCol])  # del after spliting on it
     featVals = [featVec[bestCol] for featVec in dataSet]
     uniqueVals = set(featVals)
     subData = splitDataSet(dataSet, bestCol)
     for val in uniqueVals:
-        subtree = createTree(subData[val], labels[:])
+        subtree = createTree(subData[val], labels)
         tree[bestColLabel][val] = subtree
     return tree
 
