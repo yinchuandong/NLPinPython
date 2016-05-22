@@ -1,8 +1,7 @@
 # encoding:utf-8
-__author__ = 'wangjiewen'
-
 import json
 from math import log
+import operator
 
 
 def loadFile(filename):
@@ -78,11 +77,24 @@ def selectMaxGainCol(dataSet):
     return maxFeatCol
 
 
+def majorityCnt(classList):
+    clsMap = {}
+    for cls in classList:
+        if cls not in clsMap:
+            clsMap[cls] = 1
+        else:
+            clsMap[cls] += 1
+    sortedClsMap = sorted(clsMap.iteritems(), key=operator.itemgetter(1), reverse=True)
+    return sortedClsMap[0][0]
+
+
 def createTree(dataSet, labels):
     classList = [featVec[-1] for featVec in dataSet]
     if len(set(classList)) == 1:
         return classList[0]
     bestCol = selectMaxGainCol(dataSet)
+    if len(dataSet[0]) == 1 or bestCol == -1:
+        return majorityCnt(classList)
     bestColLabel = labels[bestCol]
     tree = {}
     tree[bestColLabel] = {}
